@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xuecheng.manage_course.dao.CourseMapper">
+    <select id="findCourseBaseById" parameterType="java.lang.String"
+            resultType="com.xuecheng.framework.domain.course.CourseBase">
+        select * from course_base where id = #{id}
+    </select>
+
+    <resultMap id="findCourseBaseMapper" type="com.xuecheng.framework.domain.course.CourseBase">
+        <id property="id" column="id"/>
+        <collection property="coursePic" column="id" select="findCoursePic"/>
+    </resultMap>
+
+    <select id="findCoursePic" parameterType="string" resultType="com.xuecheng.framework.domain.course.CoursePic">
+        select * from course_pic where courseid = #{id}
+    </select>
+
+    <select id="findCourseBaseList" parameterType="com.xuecheng.framework.domain.course.request.CourseListRequest"
+            resultMap="findCourseBaseMapper">
+        select * from course_base
+        <where>
+            <if test="companyId != null and companyId != ''">
+                company_id = #{companyId}
+            </if>
+        </where>
+    </select>
+</mapper>
