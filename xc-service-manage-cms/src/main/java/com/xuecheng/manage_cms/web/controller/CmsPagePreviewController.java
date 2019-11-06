@@ -33,10 +33,11 @@ public class CmsPagePreviewController implements BaseController {
     @Override
     @GetMapping(value = "preview/{id}")
     public void preview(@PathVariable(value = "id") String pageId, HttpServletResponse response) {
-        String html = cmsPageService.getStaticFileData(pageId);
+        String html = cmsPageService.initGenerateHtml(pageId);
         if (StringUtils.isEmpty(html)){
             ExceptionCast.cast(CmsCode.CMS_COURSE_PERVIEWISNULL);
         }
+        response.setHeader("Content-type","text/html;charset=utf-8");
         OutputStream outputStream = null;
         try {
             outputStream = response.getOutputStream();

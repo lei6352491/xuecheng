@@ -44,4 +44,6 @@ public interface CmsPageService {
 
     //发布页面
     ResponseResult postPage(String pageId);
+
+    String initGenerateHtml(String courseCode);
 }

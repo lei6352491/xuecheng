@@ -12,7 +12,7 @@ spring:
     settings:
       template_update_delay: 0
   rabbitmq:
-    host: 192.168.71.128
+    host: 192.168.71.129
     port: 5672
     username: guest
     password: guest

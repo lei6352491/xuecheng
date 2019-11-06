@@ -36,6 +36,8 @@ public class CourseBase implements Serializable {
     @Column(name="user_id")
     private String userId;
 
+
     //存入课程图片信息
+    @Transient
     private CoursePic coursePic;
 }

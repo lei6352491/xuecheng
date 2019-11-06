@@ -13,6 +13,7 @@ import com.xuecheng.framework.domain.cms.request.QueryPageRequest;
 import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.cms.response.GenerateHtmlResult;
+import com.xuecheng.framework.domain.course.CourseView;
 import com.xuecheng.framework.exception.ExceptionCast;
 import com.xuecheng.framework.model.response.*;
 import com.xuecheng.framework.utils.CreateBaenUtil;
@@ -312,12 +313,22 @@ public class CmsPageServiceImpl implements CmsPageService {
         if (StringUtils.isEmpty(cmsPage.getDataUrl())) {
             ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_DATAURLISNULL);
         }
-        ResponseEntity<Map> forEntity = restTemplate.getForEntity(cmsPage.getDataUrl(), Map.class);
-        Map map = (Map) forEntity.getBody().get("cmsConfig");
-        if (map == null) {
-            ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_DATAISNULL);
+        try{
+            //页面管理的数据源
+            ResponseEntity<Map> forEntity = restTemplate.getForEntity(cmsPage.getDataUrl(), Map.class);
+            Map map = (Map) forEntity.getBody().get("cmsConfig");
+            if (map == null) {
+                ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_DATAISNULL);
+            }
+            return map;
+        }catch (Exception e){
+            //课程管理的数据源
+            ResponseEntity<CourseView> forEntity = restTemplate.getForEntity(cmsPage.getDataUrl(), CourseView.class);
+            CourseView body = forEntity.getBody();
+            String string = JSON.toJSONString(body);
+            Map map = JSON.parseObject(string, Map.class);
+            return map;
         }
-        return map;
     }
 
     /**
@@ -391,6 +402,43 @@ public class CmsPageServiceImpl implements CmsPageService {
         }
         return boo;
     }
+
+    /**
+     * 执行页面静态化
+     * */
+    @Override
+    public String initGenerateHtml(String courseCode){
+        //获取页面的基本信息
+        Optional<CmsPage> optionalCmsPage = cmsPageRepository.findById(courseCode);
+        if (!optionalCmsPage.isPresent()){
+            ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_NOPAGEDATA);
+        }
+        CmsPage cmsPage = optionalCmsPage.get();
+
+        //获取模板信息
+        Optional<CmsTemplate> cmsTemplateOptional = cmsTemplateRepository.findById(cmsPage.getTemplateId());
+        if (!cmsTemplateOptional.isPresent()){
+            ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_TEMPLATEISNULL);
+        }
+        CmsTemplate cmsTemplate = cmsTemplateOptional.get();
+        if (cmsTemplate.getTemplateFileId() == null){
+            ExceptionCast.cast(CmsCode.CMS_COURSE_TEMPLATEIDISNULL);
+        }
+
+        //获取模板所需的数据源
+        Map map = this.getHtmlData(cmsPage);
+
+        //获取模板文件
+        String templateDataString = this.getTemplateData(cmsPage, cmsTemplate);
+
+        //静态化
+        String generateHtml = this.generateHtml(templateDataString, map);
+
+        //返回静态数据
+        return generateHtml;
+
+    }
+
 
     /**
      * 向rabbitmq发送消息
