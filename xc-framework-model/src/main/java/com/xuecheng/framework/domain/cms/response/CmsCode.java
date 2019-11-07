@@ -21,7 +21,9 @@ public enum CmsCode implements ResultCode {
     CMS_COURSE_PARAMISNULL(false,24010,"参数为空！"),
     CMS_COURSE_SITEIDISNULL(false,24011,"该页面的站点id为空！"),
     CMS_COURSE_SITEDATAISNULL(false,24012,"站点信息不存在！"),
-    CMS_COURSE_TEMPLATEIDISNULL(false,24013,"模板id不存在！");
+    CMS_COURSE_TEMPLATEIDISNULL(false,24013,"模板id不存在！"),
+    CMS_COURSE_PAGEPATHISERROR(false,24014,"页面路径异常！"),
+    CMS_COURSE_SITEPATHISERROR(false,24015,"站点路径异常！");
     //操作代码
     boolean success;
     //操作代码

@@ -4,9 +4,11 @@ import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.request.QueryPageRequest;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.cms.response.GenerateHtmlResult;
+import com.xuecheng.framework.domain.course.response.CmsPostPageResult;
 import com.xuecheng.framework.model.response.QueryResponseResult;
 import com.xuecheng.framework.model.response.Response;
 import com.xuecheng.framework.model.response.ResponseResult;
+import io.swagger.annotations.ApiOperation;
 
 /**
  * @author 杜承旭
@@ -32,5 +34,8 @@ public interface CmsPageControllerApi {
     ResponseResult generateHtml(String pageId);
 
     ResponseResult post(String pageId);
+
+    @ApiOperation(value = "一键发布页面信息")
+    CmsPostPageResult postPageQuick(CmsPage cmsPage);
 
 }

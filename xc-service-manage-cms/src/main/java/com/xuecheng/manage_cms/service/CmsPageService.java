@@ -4,6 +4,7 @@ import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.request.QueryPageRequest;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.cms.response.GenerateHtmlResult;
+import com.xuecheng.framework.domain.course.response.CmsPostPageResult;
 import com.xuecheng.framework.model.response.QueryResponseResult;
 import com.xuecheng.framework.model.response.ResponseResult;
 
@@ -46,4 +47,7 @@ public interface CmsPageService {
     ResponseResult postPage(String pageId);
 
     String initGenerateHtml(String courseCode);
+
+    //一键发布课程信息页面
+    CmsPostPageResult postPageQuick(CmsPage cmsPage);
 }

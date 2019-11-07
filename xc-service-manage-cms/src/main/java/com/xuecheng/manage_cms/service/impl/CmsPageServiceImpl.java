@@ -1,6 +1,7 @@
 package com.xuecheng.manage_cms.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSDownloadStream;
 import com.mongodb.client.gridfs.model.GridFSFile;
@@ -14,6 +15,7 @@ import com.xuecheng.framework.domain.cms.response.CmsCode;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.cms.response.GenerateHtmlResult;
 import com.xuecheng.framework.domain.course.CourseView;
+import com.xuecheng.framework.domain.course.response.CmsPostPageResult;
 import com.xuecheng.framework.exception.ExceptionCast;
 import com.xuecheng.framework.model.response.*;
 import com.xuecheng.framework.utils.CreateBaenUtil;
@@ -52,6 +54,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author 杜承旭
@@ -83,6 +86,9 @@ public class CmsPageServiceImpl implements CmsPageService {
 
     @Autowired
     private RabbitmqConfig rabbitmqConfig;
+
+    @Autowired
+    private CmsSiteRepository cmsSiteRepository;
 
     /**
      * 多条件分页查询cms页面信息
@@ -383,6 +389,9 @@ public class CmsPageServiceImpl implements CmsPageService {
         return null;
     }
 
+    /**
+     * 保存静态html文件到GridFS中
+     * */
     private boolean saveHtmlDataFile(String htmlString,String templateName,CmsPage cmsPage){
         boolean boo = false;
         try {
@@ -443,6 +452,66 @@ public class CmsPageServiceImpl implements CmsPageService {
         //返回静态数据
         return generateHtml;
 
+    }
+
+    /**
+     * 一键发布课程页面信息
+     * */
+    @Override
+    public CmsPostPageResult postPageQuick(CmsPage cmsPage) {
+        String pageName = UUID.randomUUID().toString().replace("-","") + ".html";
+        //校验cmsPage页面信息
+        if (StringUtils.isEmpty(cmsPage.getPageWebPath()))
+            ExceptionCast.cast(CmsCode.CMS_COURSE_PAGEPATHISERROR);
+        cmsPage.setPageName(pageName);
+
+        //判断cms页面信息是否存在，若存在更新，不存保存页面信息
+        CmsPage queryCmsPage = cmsPageRepository.findByPageNameAndSiteIdAndPageWebPath
+                (cmsPage.getPageName(), cmsPage.getSiteId(), cmsPage.getPageWebPath());
+        if (queryCmsPage == null){
+            cmsPage = cmsPageRepository.save(cmsPage);
+        }else {
+            String pageId = queryCmsPage.getPageId();
+            BeanUtils.copyProperties(cmsPage,queryCmsPage);
+            queryCmsPage.setPageId(pageId);
+            cmsPage = cmsPageRepository.save(queryCmsPage);
+        }
+
+        //查询站点信息
+        if (StringUtils.isEmpty(cmsPage.getSiteId()))
+            ExceptionCast.cast(CmsCode.CMS_COURSE_SITEIDISNULL);
+        Optional<CmsSite> cmsSiteOptional = cmsSiteRepository.findById(cmsPage.getSiteId());
+        if (!cmsSiteOptional.isPresent())
+            ExceptionCast.cast(CmsCode.CMS_COURSE_SITEDATAISNULL);
+        CmsSite cmsSite = cmsSiteOptional.get();
+
+        //校验站点路径
+        if (StringUtils.isEmpty(cmsSite.getSiteDomain()) || StringUtils.isEmpty(cmsSite.getSiteWebPath()))
+            ExceptionCast.cast(CmsCode.CMS_COURSE_SITEPATHISERROR);
+
+        //静态化页面
+        GenerateHtmlResult generateHtmlResult = this.getPageHtml(cmsPage.getPageId());
+        if (StringUtils.isEmpty(generateHtmlResult.getHtml()))
+            ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_HTMLISNULL);
+
+        //把静态化数据保存到GridFS中
+        boolean boo = this.saveHtmlDataFile(generateHtmlResult.getHtml(), pageName, cmsPage);
+        if (!boo){
+            ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_SAVEHTMLERROR);
+        }
+
+        //定义向mq发送的数据
+        Map<String, String> map = new HashMap<>();
+        map.put("pageId",cmsPage.getPageId());
+        String msg = JSON.toJSONString(map);
+
+        //通知rabbitmq页面静态化完成并保存到gridFS
+        prosucer(msg);
+
+        //返回结果数据
+        String pageUrl = cmsSite.getSiteDomain() + cmsSite.getSiteWebPath()
+                + cmsPage.getPageWebPath() + cmsPage.getPageName();
+        return new CmsPostPageResult(CommonCode.SUCCESS,pageUrl);
     }
 
 
