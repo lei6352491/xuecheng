@@ -12,7 +12,6 @@ import lombok.ToString;
  */
 @Data
 @ToString
-@NoArgsConstructor
 public class ResponseResult implements Response {
 
     //操作是否成功
@@ -23,6 +22,9 @@ public class ResponseResult implements Response {
 
     //提示信息
     String message;
+
+    public ResponseResult() {
+    }
 
     public ResponseResult(ResultCode resultCode){
         this.success = resultCode.success();

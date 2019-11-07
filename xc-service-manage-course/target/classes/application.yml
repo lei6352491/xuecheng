@@ -28,3 +28,20 @@ xuecheng:
     network_timeout_in_seconds: 3000
     charset: UTF-8
     tracker_servers: 192.168.25.133:22122 #多个 trackerServer中间以逗号分隔
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://192.168.1.93:20000/eureka/
+
+#课程预览页面配置
+course-publish:
+  cmsPage:
+    siteId: 5a751fab6abb5044e0d19ea2
+    templateId: 5ad9a24d68db5239b8fef199
+    pageWebPath: /course/detail/
+    pagePhysicalPath: /course/detail/
+    dataUrl: http://localhost:31200/courseview/get/
+  previewUrl: http://www.xuecheng.com/cms/preview/

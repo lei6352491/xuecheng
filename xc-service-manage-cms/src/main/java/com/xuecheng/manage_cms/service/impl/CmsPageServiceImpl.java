@@ -28,6 +28,7 @@ import com.xuecheng.manage_cms.service.CmsPageService;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import org.apache.commons.io.CopyUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
@@ -114,20 +115,25 @@ public class CmsPageServiceImpl implements CmsPageService {
      */
     @Override
     @Transactional
-    public QueryResponseResult add(CmsPage cmsPage) {
+    public CmsPageResult add(CmsPage cmsPage) {
         //校验该页面信息是否存在
         CmsPage queryCmsPage = cmsPageRepository.findByPageNameAndSiteIdAndPageWebPath
                 (cmsPage.getPageName(), cmsPage.getSiteId(), cmsPage.getPageWebPath());
-        if (queryCmsPage == null) {
-            try {
-                cmsPageRepository.save(cmsPage);
-                return new QueryResponseResult(CommonCode.SUCCESS, new QueryResult());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return new QueryResponseResult(CommonCode.FAIL, new QueryResult());
+        CmsPage cmsPage1 = null;
+        try {
+            if (queryCmsPage == null){
+                cmsPage1 = cmsPageRepository.save(cmsPage);
+            }else {
+                String pageId = queryCmsPage.getPageId();
+                BeanUtils.copyProperties(cmsPage,queryCmsPage);
+                queryCmsPage.setPageId(pageId);
+                cmsPage1 = cmsPageRepository.save(queryCmsPage);
             }
+            return new CmsPageResult(CommonCode.SUCCESS,cmsPage1);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new CmsPageResult(CommonCode.FAIL,null);
         }
-        return new QueryResponseResult(CommonCode.REPEAT, new QueryResult());
     }
 
     /**
@@ -407,9 +413,9 @@ public class CmsPageServiceImpl implements CmsPageService {
      * 执行页面静态化
      * */
     @Override
-    public String initGenerateHtml(String courseCode){
+    public String initGenerateHtml(String pageId){
         //获取页面的基本信息
-        Optional<CmsPage> optionalCmsPage = cmsPageRepository.findById(courseCode);
+        Optional<CmsPage> optionalCmsPage = cmsPageRepository.findById(pageId);
         if (!optionalCmsPage.isPresent()){
             ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_NOPAGEDATA);
         }

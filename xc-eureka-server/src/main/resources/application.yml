@@ -1,0 +1,16 @@
+server:
+  port: 20000
+
+spring:
+  application:
+    name: xc-eureka-server
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://192.168.1.93:20000/eureka/
+
+
+

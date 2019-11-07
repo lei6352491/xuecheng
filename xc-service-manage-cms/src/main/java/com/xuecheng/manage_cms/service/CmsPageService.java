@@ -22,7 +22,7 @@ public interface CmsPageService {
     QueryResponseResult findList(Integer page, Integer size, QueryPageRequest queryPageRequest);
 
     //新增cms页面信息
-    QueryResponseResult add(CmsPage cmsPage);
+    CmsPageResult add(CmsPage cmsPage);
 
     //根据主键查询cms页面信息
     CmsPageResult get(String pageId);

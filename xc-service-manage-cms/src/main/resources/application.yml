@@ -12,7 +12,7 @@ spring:
     settings:
       template_update_delay: 0
   rabbitmq:
-    host: 192.168.71.129
+    host: 192.168.25.129
     port: 5672
     username: guest
     password: guest
@@ -22,3 +22,12 @@ xuecheng:
   mq:
     queue: queue_cms_postpage_01
     routingkey: 5a751fab6abb5044e0d19ea1
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: false
+    service-url:
+      defaultZone: http://192.168.1.93:20000/eureka/
+  instance:
+    prefer-ip-address: true
