@@ -12,4 +12,7 @@ import com.xuecheng.framework.domain.course.response.CoursePublishResult;
 public interface CoursePublishService {
 
     CoursePublishResult preview(String courseCode);
+
+    CoursePublishResult publish(String courseCode);
+
 }

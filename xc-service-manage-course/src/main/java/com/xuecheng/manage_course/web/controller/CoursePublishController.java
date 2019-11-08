@@ -27,7 +27,11 @@ public class CoursePublishController {
 
     @GetMapping(value = "/preview/{id}")
     public CoursePublishResult preview(@PathVariable(value = "id")String courseCode){
-
         return coursePublishService.preview(courseCode);
+    }
+
+    @GetMapping(value = "/publish/{id}")
+    public CoursePublishResult publish(@PathVariable(value = "id")String courseCode){
+        return coursePublishService.publish(courseCode);
     }
 }

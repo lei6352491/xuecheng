@@ -405,12 +405,12 @@ public class CmsPageServiceImpl implements CmsPageService {
             cmsPage.setPageType("0");
             cmsPageRepository.save(cmsPage);
 
-            Optional<CmsTemplate> templateOptional = cmsTemplateRepository.findById(cmsPage.getTemplateId());
+            /*Optional<CmsTemplate> templateOptional = cmsTemplateRepository.findById(cmsPage.getTemplateId());
             if (templateOptional.isPresent()){
                 CmsTemplate cmsTemplate = templateOptional.get();
                 cmsTemplate.setTemplateFileId(objectId.toString());
                 cmsTemplateRepository.save(cmsTemplate);
-            }
+            }*/
             boo = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -459,11 +459,11 @@ public class CmsPageServiceImpl implements CmsPageService {
      * */
     @Override
     public CmsPostPageResult postPageQuick(CmsPage cmsPage) {
-        String pageName = UUID.randomUUID().toString().replace("-","") + ".html";
+        //String pageName = UUID.randomUUID().toString().replace("-","") + ".html";
         //校验cmsPage页面信息
         if (StringUtils.isEmpty(cmsPage.getPageWebPath()))
             ExceptionCast.cast(CmsCode.CMS_COURSE_PAGEPATHISERROR);
-        cmsPage.setPageName(pageName);
+        //cmsPage.setPageName(pageName);
 
         //判断cms页面信息是否存在，若存在更新，不存保存页面信息
         CmsPage queryCmsPage = cmsPageRepository.findByPageNameAndSiteIdAndPageWebPath
@@ -486,7 +486,7 @@ public class CmsPageServiceImpl implements CmsPageService {
         CmsSite cmsSite = cmsSiteOptional.get();
 
         //校验站点路径
-        if (StringUtils.isEmpty(cmsSite.getSiteDomain()) || StringUtils.isEmpty(cmsSite.getSiteWebPath()))
+        if (StringUtils.isEmpty(cmsSite.getSiteDomain()))
             ExceptionCast.cast(CmsCode.CMS_COURSE_SITEPATHISERROR);
 
         //静态化页面
@@ -495,7 +495,7 @@ public class CmsPageServiceImpl implements CmsPageService {
             ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_HTMLISNULL);
 
         //把静态化数据保存到GridFS中
-        boolean boo = this.saveHtmlDataFile(generateHtmlResult.getHtml(), pageName, cmsPage);
+        boolean boo = this.saveHtmlDataFile(generateHtmlResult.getHtml(), "课程页面" + cmsPage.getPageName(), cmsPage);
         if (!boo){
             ExceptionCast.cast(CmsCode.CMS_GENERATEHTML_SAVEHTMLERROR);
         }

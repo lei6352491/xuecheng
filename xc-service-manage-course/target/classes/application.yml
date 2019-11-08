@@ -39,7 +39,7 @@ eureka:
 #课程预览页面配置
 course-publish:
   cmsPage:
-    siteId: 5a751fab6abb5044e0d19ea2
+    siteId: 5a751fab6abb5044e0d19ea1
     templateId: 5ad9a24d68db5239b8fef199
     pageWebPath: /course/detail/
     pagePhysicalPath: /course/detail/

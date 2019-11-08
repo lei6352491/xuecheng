@@ -105,7 +105,8 @@ public class CmsPageController implements CmsPageControllerApi {
      * 一键发布页面信息（课程管理页面信息的发布）
      * */
     @Override
-    public CmsPostPageResult postPageQuick(CmsPage cmsPage) {
+    @PostMapping(value = "/postPageQuick")
+    public CmsPostPageResult postPageQuick(@RequestBody CmsPage cmsPage) {
         return cmsPageService.postPageQuick(cmsPage);
     }
 
