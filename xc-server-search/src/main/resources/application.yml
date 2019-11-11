@@ -1,0 +1,10 @@
+server:
+  port: 40100
+
+spring:
+  application:
+    name: xc-server-search
+
+xuecheng:
+  elasticsearch:
+    hostlist: 192.168.25.129:9200
