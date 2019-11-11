@@ -1,24 +1,32 @@
 package com.xuecheng.manage_course.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.xuecheng.framework.domain.cms.CmsPage;
 import com.xuecheng.framework.domain.cms.response.CmsPageResult;
 import com.xuecheng.framework.domain.course.CourseBase;
+import com.xuecheng.framework.domain.course.CourseMarket;
+import com.xuecheng.framework.domain.course.CoursePic;
+import com.xuecheng.framework.domain.course.CoursePub;
+import com.xuecheng.framework.domain.course.ext.TeachplanNode;
 import com.xuecheng.framework.domain.course.response.CmsPostPageResult;
 import com.xuecheng.framework.domain.course.response.CourseCode;
 import com.xuecheng.framework.domain.course.response.CoursePublishResult;
 import com.xuecheng.framework.exception.ExceptionCast;
 import com.xuecheng.framework.model.response.CommonCode;
 import com.xuecheng.framework.model.response.ResponseResult;
-import com.xuecheng.manage_course.dao.CourseBaseRepository;
+import com.xuecheng.manage_course.dao.*;
 import com.xuecheng.manage_course.model.CoursePublish;
 import com.xuecheng.manage_course.service.CoursePublishService;
 import com.xuecheng.manage_course.web.feign.CmsPageFeign;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -41,6 +49,18 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Autowired
     private CourseBaseRepository courseBaseRepository;
+
+    @Autowired
+    private CoursePicRepository coursePicRepository;
+
+    @Autowired
+    private CourseMarketRepository courseMarketRepository;
+
+    @Autowired
+    private TeachplanMapper teachplanMapper;
+
+    @Autowired
+    private CoursePubRepository coursePubRepository;
 
     /***
      * 课程信息预览
@@ -96,6 +116,12 @@ public class CoursePublishServiceImpl implements CoursePublishService {
             courseBase.setStatus("202002");
             courseBaseRepository.save(courseBase);
 
+            //发布成功，向coursePub表中添加课程的索引信息
+            //-获取coursePub信息
+            CoursePub coursePub = createCoursePub(courseCode);
+            //-保存coursePub信息
+            coursePubRepository.save(coursePub);
+
             //返回结果集
             return new CoursePublishResult(CommonCode.SUCCESS,pageUrl);
         }catch (Exception e){
@@ -105,5 +131,53 @@ public class CoursePublishServiceImpl implements CoursePublishService {
             //重新初始化dataUrl路劲
             coursePublish.getCmsPage().setDataUrl(dataUrl);
         }
+    }
+
+
+    /**
+     * 获取coursePub对象
+     * */
+    private CoursePub createCoursePub(String courseCode){
+        //创建coursePub JavaBean 对象
+        CoursePub coursePub = new CoursePub();
+
+        //查询课程基本信息
+        Optional<CourseBase> courseBaseOptional = courseBaseRepository.findById(courseCode);
+        CourseBase courseBase = null;
+        if (courseBaseOptional.isPresent())
+            courseBase = courseBaseOptional.get();
+
+        //查询课程图片信息
+        Optional<CoursePic> coursePicOptional = coursePicRepository.findById(courseCode);
+        CoursePic coursePic = null;
+        if (coursePicOptional.isPresent())
+            coursePic = coursePicOptional.get();
+
+        //查询课程营销信息
+        Optional<CourseMarket> courseMarketOptional = courseMarketRepository.findById(courseCode);
+        CourseMarket courseMarket = null;
+        if (courseMarketOptional.isPresent())
+            courseMarket = courseMarketOptional.get();
+
+        //查询课程计划信息
+        TeachplanNode teachplanNode = teachplanMapper.selectTeachPlanNodeListByCourseId(courseCode);
+
+        //课程信息封装到coursePub中
+        if (courseBase != null)
+            BeanUtils.copyProperties(courseBase,coursePub);
+        if (coursePic != null)
+            BeanUtils.copyProperties(coursePic,coursePub);
+        if (courseMarket != null)
+            BeanUtils.copyProperties(courseMarket,coursePub);
+        if (teachplanNode != null)
+            coursePub.setTeachplan(JSON.toJSONString(teachplanNode));
+
+        //补全coursePub信息
+        coursePub.setTimestamp(new Date());
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateString = simpleDateFormat.format(coursePub.getTimestamp());
+        coursePub.setPubTime(dateString);
+
+        return coursePub;
     }
 }

@@ -25,11 +25,17 @@ public class CoursePublishController {
     @Autowired
     private CoursePublishService coursePublishService;
 
+    /**
+     * 课程信息的预览
+     * */
     @GetMapping(value = "/preview/{id}")
     public CoursePublishResult preview(@PathVariable(value = "id")String courseCode){
         return coursePublishService.preview(courseCode);
     }
 
+    /**
+     * 课程发布
+     * */
     @GetMapping(value = "/publish/{id}")
     public CoursePublishResult publish(@PathVariable(value = "id")String courseCode){
         return coursePublishService.publish(courseCode);
