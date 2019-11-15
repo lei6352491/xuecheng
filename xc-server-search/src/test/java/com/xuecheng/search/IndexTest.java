@@ -8,6 +8,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -120,6 +121,15 @@ public class IndexTest {
 
             //取出高亮
             Map<String, HighlightField> highlightFields = searchHit.getHighlightFields();
+            HighlightField highlightField = highlightFields.get("name");
+            Text[] texts = highlightField.getFragments();
+            if (texts != null && texts.length > 0){
+                StringBuffer stringBuffer = new StringBuffer();
+                for (Text text : texts){
+                    stringBuffer.append(text.string());
+                }
+                System.out.println(stringBuffer.toString());
+            }
 
             System.out.println(id);
             System.out.println(sourceAsMap);
